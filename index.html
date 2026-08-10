@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plancia di Controllo — v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg: #0E1014;
+  --panel: #171A20;
+  --border: #262B33;
+  --border-hi: #363D4B;
+  --amber: #FFA92E;
+  --amber-dim: #6b5228;
+  --green: #4ADE80;
+  --red: #F87171;
+  --text: #E8E9ED;
+  --text-muted: #8B93A3;
+  --text-faint: #575F6E;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', sans-serif;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+*:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+@media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+.wrap{ max-width:1180px; margin:0 auto; padding:30px 20px 90px; }
+
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  padding-bottom:18px; margin-bottom:24px;
+  border-bottom:1px solid var(--border);
+}
+.brand{ display:flex; align-items:center; gap:11px; }
+.brand-dot{ width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 8px 2px rgba(74,222,128,0.5); }
+.brand h1{ font-family:var(--mono); font-size:14px; letter-spacing:2px; text-transform:uppercase; margin:0; }
+.brand span{ display:block; font-family:var(--mono); font-size:10px; color:var(--text-faint); letter-spacing:1px; margin-top:2px; }
+.clock{ font-family:var(--mono); font-size:12px; color:var(--text-muted); letter-spacing:1px; }
+.clock b{ color:var(--amber); font-variant-numeric:tabular-nums; }
+
+.search-box{ position:relative; max-width:380px; margin-bottom:34px; }
+.search-box input{
+  width:100%; background:var(--panel); border:1px solid var(--border); color:var(--text);
+  font-family:var(--mono); font-size:12.5px; padding:10px 13px 10px 34px; border-radius:8px;
+}
+.search-box svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text-faint); }
+
+.section{ margin-bottom:36px; }
+.section-head{
+  display:flex; align-items:center; gap:10px; margin-bottom:14px;
+}
+.section-head h2{
+  font-family:var(--mono); font-size:11.5px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-muted); margin:0; white-space:nowrap;
+}
+.section-head .rule{ flex:1; height:1px; background:var(--border); }
+.section-head .icon-btn{ opacity:0; }
+.section:hover .section-head .icon-btn{ opacity:1; }
+
+.btn-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+  gap:12px;
+}
+
+.link-btn{
+  position:relative;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px 10px 12px;
+  text-decoration:none;
+  color:var(--text);
+  transition:border-color .15s ease, transform .12s ease, background .15s ease;
+  min-height:96px;
+}
+.link-btn:hover{ border-color:var(--amber-dim); background:#1C2028; transform:translateY(-2px); }
+.link-btn:active{ transform:translateY(-2px) scale(0.97); }
+
+.link-logo{
+  width:32px; height:32px; border-radius:8px;
+  background:var(--border);
+  object-fit:contain;
+}
+.link-logo-fallback{
+  width:32px; height:32px; border-radius:8px;
+  background:var(--amber-dim); color:#1a1206;
+  font-family:var(--mono); font-size:14px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.link-title{
+  font-size:11.5px; font-weight:500; text-align:center; line-height:1.25;
+  color:var(--text-muted);
+  overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  word-break:break-word;
+}
+.link-btn:hover .link-title{ color:var(--text); }
+
+.link-del{
+  position:absolute; top:6px; right:6px;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--bg); border:1px solid var(--border-hi); color:var(--text-faint);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; cursor:pointer; padding:0;
+  transition:opacity .12s ease;
+}
+.link-btn:hover .link-del{ opacity:1; }
+.link-del:hover{ color:var(--red); border-color:var(--red); }
+
+.add-tile{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  border:1px dashed var(--border-hi); border-radius:12px;
+  min-height:96px; cursor:pointer; background:none;
+  color:var(--text-faint); font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase;
+}
+.add-tile:hover{ color:var(--amber); border-color:var(--amber-dim); }
+
+.icon-btn{ background:none; border:none; cursor:pointer; color:var(--text-faint); padding:3px; border-radius:5px; display:flex; }
+.icon-btn:hover{ color:var(--amber); }
+.icon-btn.danger:hover{ color:var(--red); }
+
+.inline-form{
+  grid-column:1/-1;
+  display:flex; gap:8px; flex-wrap:wrap;
+  background:var(--panel); border:1px solid var(--border-hi); border-radius:10px; padding:12px;
+}
+.inline-form input{
+  background:var(--bg); border:1px solid var(--border-hi); color:var(--text);
+  font-family:var(--sans); font-size:12.5px; padding:8px 10px; border-radius:6px;
+  flex:1; min-width:120px;
+}
+.inline-form button{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:0.5px;
+  background:var(--amber); border:1px solid var(--amber); color:#241705; font-weight:700;
+  padding:0 14px; border-radius:6px; cursor:pointer;
+}
+.inline-form .cancel{ background:none; border:1px solid var(--border-hi); color:var(--text-muted); }
+
+.add-section-row{ margin-top:8px; }
+.add-section-btn{
+  display:flex; align-items:center; gap:8px;
+  background:none; border:1px dashed var(--border-hi); color:var(--text-faint);
+  font-family:var(--mono); font-size:11px; letter-spacing:0.5px; text-transform:uppercase;
+  padding:10px 16px; border-radius:8px; cursor:pointer;
+}
+.add-section-btn:hover{ color:var(--amber); border-color:var(--amber-dim); }
+.no-results{ color:var(--text-faint); font-family:var(--mono); font-size:12px; padding:20px 0; }
+.loading{ text-align:center; padding:80px 20px; font-family:var(--mono); color:var(--text-faint); font-size:12px; letter-spacing:1px; }
+
+.quicksearch{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+  gap:12px;
+  margin-bottom:36px;
+}
+.qs-box{
+  display:flex; align-items:center; gap:9px;
+  background:var(--panel); border:1px solid var(--border); border-radius:9px;
+  padding:9px 10px;
+}
+.qs-box .qs-logo{ width:18px; height:18px; border-radius:4px; flex-shrink:0; object-fit:contain; }
+.qs-box .qs-emoji{ font-size:15px; flex-shrink:0; line-height:1; }
+.qs-box input{
+  flex:1; min-width:0;
+  background:none; border:none; color:var(--text);
+  font-family:var(--sans); font-size:12.5px;
+  padding:2px 0;
+}
+.qs-box input::placeholder{ color:var(--text-faint); }
+.qs-box input:focus{ outline:none; }
+.qs-box:focus-within{ border-color:var(--amber-dim); }
+.qs-box button{
+  background:none; border:none; color:var(--text-faint); cursor:pointer;
+  display:flex; padding:2px; flex-shrink:0;
+}
+.qs-box button:hover{ color:var(--amber); }
+
+.lock-screen{
+  position:fixed; inset:0; z-index:100;
+  background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:18px;
+}
+.lock-box{
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  padding:34px 30px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--panel);
+  min-width:260px;
+}
+.lock-icon{ color:var(--amber); }
+.lock-title{ font-family:var(--mono); font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
+.lock-box input{
+  width:180px;
+  text-align:center;
+  letter-spacing:8px;
+  font-family:var(--mono);
+  font-size:18px;
+  background:var(--bg);
+  border:1px solid var(--border-hi);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:8px;
+}
+.lock-box input.shake{ animation: shake .35s ease; border-color:var(--red); }
+@keyframes shake{
+  0%,100%{ transform:translateX(0); }
+  25%{ transform:translateX(-6px); }
+  75%{ transform:translateX(6px); }
+}
+.lock-box button{
+  font-family:var(--mono); font-size:11px; letter-spacing:1px; text-transform:uppercase;
+  background:var(--amber); border:1px solid var(--amber); color:#241705; font-weight:700;
+  padding:9px 20px; border-radius:7px; cursor:pointer; width:100%;
+}
+.lock-error{ font-family:var(--mono); font-size:10.5px; color:var(--red); min-height:14px; }
+.app-hidden{ display:none; }
+</style>
+</head>
+<body>
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-box">
+    <svg class="lock-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    <div class="lock-title">Plancia protetta</div>
+    <form id="lockForm" autocomplete="off">
+      <input type="password" id="lockInput" inputmode="numeric" maxlength="8" placeholder="••••" autofocus>
+    </form>
+    <div class="lock-error" id="lockError"></div>
+    <button type="button" id="lockSubmit">Sblocca</button>
+  </div>
+</div>
+
+<div class="wrap app-hidden" id="mainApp">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <div>
+        <h1>Plancia di Controllo</h1>
+        <span>versione a pulsanti</span>
+      </div>
+    </div>
+    <div class="clock">ORA <b id="clock">--:--:--</b></div>
+  </div>
+
+  <div class="search-box">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search" placeholder="Cerca un collegamento..." autocomplete="off">
+  </div>
+
+  <div class="quicksearch">
+    <form class="qs-box" data-qs="mapsearch">
+      <span class="qs-emoji">🗺️</span>
+      <input type="text" name="q" placeholder="Cerca indirizzo (search.ch mappe)" autocomplete="off">
+      <button type="submit" aria-label="Cerca indirizzo"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </form>
+    <form class="qs-box" data-qs="telsearch">
+      <span class="qs-emoji">☎️</span>
+      <input type="text" name="q" placeholder="Cerca numero (search.ch elenco)" autocomplete="off">
+      <button type="submit" aria-label="Cerca numero"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </form>
+    <form class="qs-box" data-qs="chatgpt">
+      <span class="qs-emoji">🤖</span>
+      <input type="text" name="q" placeholder="Chiedi a ChatGPT" autocomplete="off">
+      <button type="submit" aria-label="Chiedi a ChatGPT"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </form>
+    <form class="qs-box" data-qs="google">
+      <span class="qs-emoji">🔍</span>
+      <input type="text" name="q" placeholder="Cerca su Google" autocomplete="off">
+      <button type="submit" aria-label="Cerca su Google"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </form>
+  </div>
+
+  <div id="app"><div class="loading">INIZIALIZZAZIONE PLANCIA...</div></div>
+</div>
+
+<script>
+const ICON_TRASH = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+const ICON_EDIT = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+const ICON_SECDEL = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+const ICON_PLUS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+const ICON_AED = '<div style="width:32px;height:32px;border-radius:8px;background:#1D8A3E;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-6.7-4.3-9.6-8.7C.6 9.6 1.4 6 4.6 4.8 7 3.9 9.4 4.8 11 6.8l.4.5.3-.5c.9-1.2 2.2-2 3.7-2.2l-2.6 5.6h3l-4 7.4 1-4.4h-2.8l1-4.9c-.4.3-.8.7-1.1 1.1l-.4.5-.4-.5C7.9 7.5 6 6.9 4.6 7.6 2.8 8.4 2.3 10.6 3.6 12.5 5.8 15.7 10 19 12 20.3c2-1.3 6.2-4.6 8.4-7.8.5-.7.8-1.4.9-2.1h-2l1-2.1c.1.5.1 1 0 1.6-.2 1.1-.7 2.2-1.5 3.3C15.7 16.7 12 21 12 21z"/></svg></div>';
+const ICON_144 = '<div style="width:32px;height:32px;border-radius:8px;background:#C8102E;display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;letter-spacing:-0.5px;">144</span></div>';
+
+const STORAGE_KEY = 'panel-data-v2';
+const app = document.getElementById('app');
+const searchInput = document.getElementById('search');
+let state = null;
+let ui = { addingSection:false, addingLinkFor:null, editingSection:null };
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function normalizeUrl(u){ u=u.trim(); if(!u) return ''; if(!/^https?:\/\//i.test(u)) u='https://'+u; return u; }
+function logoFor(url){ try{ return 'https://www.google.com/s2/favicons?sz=128&domain_url='+encodeURIComponent(url); }catch(e){ return ''; } }
+
+function seedData(){
+  return { categories: [
+    { id: uid(), name: 'Interventi & Soccorso', links: [
+      { id: uid(), name: 'Momentum Tessin DAE', url: 'https://tessin.momentum.surevive.ch/interventions/index', iconHtml: ICON_AED },
+      { id: uid(), name: 'Momentum Fctsa', url: 'https://fctsa.momentum.surevive.ch/interventions/resolverClosed#4512', iconHtml: ICON_144 },
+      { id: uid(), name: 'Momentum Ars', url: 'https://ars.momentum.surevive.ch/', logoDomain: 'https://www.rega.ch/it' },
+      { id: uid(), name: 'MOMEYE', url: 'https://momentum.emeye-t.ch/new' },
+      { id: uid(), name: 'SOS24', url: 'https://appl1.nettowin.ch/Web3/login.aspx?ReturnUrl=%2fWeb3' },
+      { id: uid(), name: 'ambupad', url: 'https://ambupad.fctsa.ch/admin/it/logincustom/unauthenticated' },
+      { id: uid(), name: 'rescuetrack', url: 'https://apps.rescuetrack.com/rwa/' },
+      { id: uid(), name: 'REGA Svizzera TI', url: 'https://www.rega.ch/it' }
+    ]},
+    { id: uid(), name: 'Mappe & Cartografia', links: [
+      { id: uid(), name: 'Google Maps', url: 'https://www.google.com/maps/@46.0007563,8.9686861,13z' },
+      { id: uid(), name: 'Cartine Svizzera – REGATI', url: 'https://map.geo.admin.ch/?zoom=5&bgLayer=ch.swisstopo.swissimage&topic=aviation&catalogNodes=1379' },
+      { id: uid(), name: 'Carta topografica', url: 'https://map.geo.admin.ch/?topic=aviation&lang=de&bgLayer=ch.swisstopo.pixelkarte-farbe' },
+      { id: uid(), name: '2 TG (swisstopo)', url: 'https://map.geo.admin.ch/?topic=swisstopo&lang=it&bgLayer=ch.swisstopo.swissimage' },
+      { id: uid(), name: 'retorte.ch Koordinator', url: 'https://tools.retorte.ch/map/' },
+      { id: uid(), name: 'Mappa SvizzeraMobile', url: 'https://map.schweizmobil.ch/?lang=it&season=summer&layers=Veloland' },
+      { id: uid(), name: 'Piste ciclabili', url: 'https://map.schweizmobil.ch/?lang=it&season=summer' },
+      { id: uid(), name: 'search.ch', url: 'https://search.ch/' }
+    ]},
+    { id: uid(), name: 'Monitoraggio & Allarmi', links: [
+      { id: uid(), name: 'DriveOnStreet', url: 'https://panel.driveonstreet.com/maps' },
+      { id: uid(), name: 'eAlarm Swisscom', url: 'https://emergency.swisscom-alarm.ch/' },
+      { id: uid(), name: 'eocnet.eoc.ch', url: 'https://eocnet.eoc.ch/new' },
+      { id: uid(), name: 'ECHO SOS', url: 'https://echosos.com/' },
+      { id: uid(), name: 'hospithome', url: 'https://hospithome-6be2d.web.app/' }
+    ]},
+    { id: uid(), name: 'Comunicazione & Ufficio', links: [
+      { id: uid(), name: 'POSTA TL (Outlook)', url: 'https://outlook.office.com/mail/' },
+      { id: uid(), name: 'OneNote', url: 'https://onenote.cloud.microsoft/' },
+      { id: uid(), name: 'SHP365 – Ticino Soccorso 144', url: 'https://ticinosoccorso144.sharepoint.com/sites/TicinoSoccorso144/SitePages/TrainingHome.aspx' }
+    ]},
+    { id: uid(), name: 'Info utili', links: [
+      { id: uid(), name: 'Webcam Ticino', url: 'https://www4.ti.ch/dt/temi/webcam/tema/tema' },
+      { id: uid(), name: 'Farmacie di turno', url: 'https://www.ofct.ch/farmacieturno/' },
+      { id: uid(), name: 'Info traffico (TCS)', url: 'https://www.tcs.ch/it/tools/infostrada-situazione-attuale-del-traffico/situazione-attuale-traffico.php' },
+      { id: uid(), name: 'Google', url: 'https://www.google.com/?hl=it' }
+    ]}
+  ]};
+}
+
+async function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ state = JSON.parse(raw); return; }
+  }catch(e){ /* localStorage non disponibile o dati corrotti -> uso i dati di partenza */ }
+  state = seedData();
+  await saveData();
+}
+async function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('Errore di salvataggio', e); }
+}
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function tickClock(){
+  const d = new Date();
+  const el = document.getElementById('clock');
+  if(el) el.textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+}
+
+function render(){
+  const query = searchInput.value.trim().toLowerCase();
+
+  const sections = state.categories.map(cat => {
+    const filtered = query ? cat.links.filter(l => l.name.toLowerCase().includes(query)) : cat.links;
+    if(query && filtered.length === 0) return '';
+
+    const tiles = filtered.map(l => `
+      <a class="link-btn" href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(l.name)}">
+        <button type="button" class="link-del" data-action="del-link" data-cat="${cat.id}" data-link="${l.id}" title="Rimuovi" aria-label="Rimuovi ${escapeHtml(l.name)}">${ICON_TRASH}</button>
+        ${l.iconHtml ? l.iconHtml : `<img class="link-logo" src="${logoFor(l.logoDomain || l.url)}" alt="" loading="lazy" onerror="this.outerHTML='&lt;span class=&quot;link-logo-fallback&quot;&gt;${escapeHtml((l.name||'?').trim().charAt(0).toUpperCase())}&lt;/span&gt;'">`}
+        <span class="link-title">${escapeHtml(l.name)}</span>
+      </a>`).join('');
+
+    const addTile = query ? '' : (ui.addingLinkFor === cat.id
+      ? `<form class="inline-form" data-action="add-link-form" data-cat="${cat.id}">
+           <input type="text" name="name" placeholder="Nome del sito" required autofocus maxlength="40">
+           <input type="text" name="url" placeholder="indirizzo-sito.com" required>
+           <button type="submit">Aggiungi</button>
+           <button type="button" class="cancel" data-action="cancel-add-link">Annulla</button>
+         </form>`
+      : `<button type="button" class="add-tile" data-action="show-add-link" data-cat="${cat.id}">${ICON_PLUS} Nuovo</button>`);
+
+    const nameArea = ui.editingSection === cat.id
+      ? `<form data-action="rename-form" data-cat="${cat.id}" style="display:flex;">
+           <input class="inline-form-name" name="name" value="${escapeHtml(cat.name)}" autofocus maxlength="40"
+             style="background:var(--bg); border:1px solid var(--border-hi); color:var(--text); font-family:var(--mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:3px 7px; border-radius:5px;">
+         </form>`
+      : `<h2>${escapeHtml(cat.name)}</h2>`;
+
+    return `
+      <div class="section">
+        <div class="section-head">
+          ${nameArea}
+          <div class="rule"></div>
+          <button type="button" class="icon-btn" data-action="toggle-rename" data-cat="${cat.id}" title="Rinomina sezione">${ICON_EDIT}</button>
+          <button type="button" class="icon-btn danger" data-action="del-section" data-cat="${cat.id}" title="Elimina sezione">${ICON_SECDEL}</button>
+        </div>
+        <div class="btn-grid">${tiles}${addTile}</div>
+      </div>`;
+  }).join('');
+
+  const addSection = ui.addingSection
+    ? `<form class="inline-form" data-action="add-section-form" style="max-width:420px;">
+         <input type="text" name="name" placeholder="Nome sezione" required autofocus maxlength="40">
+         <button type="submit">Crea</button>
+         <button type="button" class="cancel" data-action="cancel-add-section">Annulla</button>
+       </form>`
+    : `<div class="add-section-row"><button type="button" class="add-section-btn" data-action="show-add-section">${ICON_PLUS} Nuova sezione</button></div>`;
+
+  app.innerHTML = sections + (query ? '' : addSection);
+}
+
+app.addEventListener('click', async (e) => {
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const action = t.dataset.action;
+
+  if(action === 'show-add-section'){ ui.addingSection = true; render(); }
+  else if(action === 'cancel-add-section'){ ui.addingSection = false; render(); }
+  else if(action === 'show-add-link'){ ui.addingLinkFor = t.dataset.cat; render(); }
+  else if(action === 'cancel-add-link'){ ui.addingLinkFor = null; render(); }
+  else if(action === 'toggle-rename'){ ui.editingSection = (ui.editingSection === t.dataset.cat) ? null : t.dataset.cat; render(); }
+  else if(action === 'del-section'){
+    state.categories = state.categories.filter(c => c.id !== t.dataset.cat);
+    await saveData(); render();
+  }
+  else if(action === 'del-link'){
+    e.preventDefault(); e.stopPropagation();
+    const cat = state.categories.find(c => c.id === t.dataset.cat);
+    if(cat) cat.links = cat.links.filter(l => l.id !== t.dataset.link);
+    await saveData(); render();
+  }
+});
+
+app.addEventListener('submit', async (e) => {
+  const form = e.target;
+  const action = form.dataset.action;
+  if(!action) return;
+  e.preventDefault();
+
+  if(action === 'add-section-form'){
+    const name = form.name.value.trim();
+    if(!name) return;
+    state.categories.push({ id: uid(), name, links: [] });
+    ui.addingSection = false;
+    await saveData(); render();
+  }
+  else if(action === 'rename-form'){
+    const name = form.name.value.trim();
+    const cat = state.categories.find(c => c.id === form.dataset.cat);
+    if(cat && name) cat.name = name;
+    ui.editingSection = null;
+    await saveData(); render();
+  }
+  else if(action === 'add-link-form'){
+    const name = form.name.value.trim();
+    const url = normalizeUrl(form.url.value);
+    const cat = state.categories.find(c => c.id === form.dataset.cat);
+    if(cat && name && url){
+      cat.links.push({ id: uid(), name, url });
+      ui.addingLinkFor = null;
+      await saveData(); render();
+    }
+  }
+});
+
+searchInput.addEventListener('input', () => render());
+
+const QS_BUILDERS = {
+  mapsearch: (q) => `https://search.ch/map/${encodeURIComponent(q)}.it.html`,
+  telsearch: (q) => `https://search.ch/tel/?all=${encodeURIComponent(q)}`,
+  chatgpt:   (q) => `https://chatgpt.com/?q=${encodeURIComponent(q)}`,
+  google:    (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`
+};
+
+document.querySelectorAll('.qs-box').forEach(form => {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = form.q.value.trim();
+    if(!q) return;
+    const build = QS_BUILDERS[form.dataset.qs];
+    if(build){
+      window.open(build(q), '_blank', 'noopener,noreferrer');
+      form.q.value = '';
+    }
+  });
+});
+
+const LOCK_PASSWORD = '5439';
+
+function tryUnlock(){
+  const input = document.getElementById('lockInput');
+  const val = input.value.trim();
+  if(val === LOCK_PASSWORD){
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainApp').classList.remove('app-hidden');
+    boot();
+  } else {
+    document.getElementById('lockError').textContent = 'Password errata';
+    input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+    input.value = '';
+    input.focus();
+  }
+}
+document.getElementById('lockSubmit').addEventListener('click', tryUnlock);
+document.getElementById('lockForm').addEventListener('submit', (e) => { e.preventDefault(); tryUnlock(); });
+
+async function boot(){
+  await loadData();
+  tickClock();
+  setInterval(tickClock, 1000);
+  render();
+}
+</script>
+</body>
+</html>
