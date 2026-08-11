@@ -128,6 +128,34 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
 .icon-btn:hover{ color:var(--amber); }
 .icon-btn.danger:hover{ color:var(--red); }
 
+/* Blocco modifica */
+#mainApp:not(.edit-unlocked) .link-del,
+#mainApp:not(.edit-unlocked) .section-head .icon-btn,
+#mainApp:not(.edit-unlocked) .add-tile,
+#mainApp:not(.edit-unlocked) .add-section-row{
+  display:none !important;
+}
+.edit-lock-btn{
+  display:flex; align-items:center; gap:6px;
+  background:none; border:1px solid var(--border-hi); color:var(--text-faint);
+  font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase;
+  padding:6px 10px; border-radius:6px; cursor:pointer; white-space:nowrap;
+}
+.edit-lock-btn:hover{ color:var(--amber); border-color:var(--amber-dim); }
+.edit-lock-btn.unlocked{ color:var(--green); border-color:var(--green); }
+.edit-unlock-form{ display:flex; align-items:center; gap:6px; }
+.edit-unlock-form input{
+  width:80px; text-align:center; letter-spacing:3px;
+  background:var(--bg); border:1px solid var(--border-hi); color:var(--text);
+  font-family:var(--mono); font-size:12px; padding:5px 8px; border-radius:6px;
+}
+.edit-unlock-form input.shake{ animation:shake .35s ease; border-color:var(--red); }
+.edit-unlock-form button{
+  font-family:var(--mono); font-size:10px; letter-spacing:0.5px;
+  background:var(--amber); border:1px solid var(--amber); color:#241705; font-weight:700;
+  padding:5px 10px; border-radius:6px; cursor:pointer;
+}
+
 .inline-form{
   grid-column:1/-1;
   display:flex; gap:8px; flex-wrap:wrap;
@@ -259,6 +287,7 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
       </div>
     </div>
     <div class="clock"><b id="clockDate">--</b> · ORA <b id="clock">--:--:--</b></div>
+    <div id="editLockZone"></div>
   </div>
 
   <div class="search-box">
@@ -533,6 +562,52 @@ document.querySelectorAll('.qs-box').forEach(form => {
   });
 });
 
+const EDIT_PASSWORD = '1985';
+let editUnlocked = false;
+
+function renderEditLock(){
+  const zone = document.getElementById('editLockZone');
+  if(!zone) return;
+  if(editUnlocked){
+    zone.innerHTML = '<button type="button" class="edit-lock-btn unlocked" data-action="lock-edit">🔓 Modifica attiva</button>';
+  } else {
+    zone.innerHTML = '<button type="button" class="edit-lock-btn" data-action="ask-edit-unlock">🔒 Modifica</button>';
+  }
+}
+
+document.getElementById('editLockZone').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const zone = document.getElementById('editLockZone');
+  if(t.dataset.action === 'ask-edit-unlock'){
+    zone.innerHTML = '<form class="edit-unlock-form" data-action="edit-unlock-form"><input type="password" name="code" placeholder="Codice" maxlength="6" inputmode="numeric" autofocus><button type="submit">OK</button></form>';
+    const input = zone.querySelector('input');
+    if(input) input.focus();
+  } else if(t.dataset.action === 'lock-edit'){
+    editUnlocked = false;
+    document.getElementById('mainApp').classList.remove('edit-unlocked');
+    renderEditLock();
+    requestAnimationFrame(fitToScreen);
+  }
+});
+
+document.getElementById('editLockZone').addEventListener('submit', (e) => {
+  const form = e.target;
+  if(form.dataset.action !== 'edit-unlock-form') return;
+  e.preventDefault();
+  const input = form.code;
+  if(input.value.trim() === EDIT_PASSWORD){
+    editUnlocked = true;
+    document.getElementById('mainApp').classList.add('edit-unlocked');
+    renderEditLock();
+    requestAnimationFrame(fitToScreen);
+  } else {
+    input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+    input.value = '';
+    input.focus();
+  }
+});
+
 const LOCK_PASSWORD = '5439';
 
 let fitScale = 1;
@@ -576,6 +651,7 @@ async function boot(){
   await loadData();
   tickClock();
   setInterval(tickClock, 1000);
+  renderEditLock();
   render();
   requestAnimationFrame(() => requestAnimationFrame(fitToScreen));
   setTimeout(fitToScreen, 300);
