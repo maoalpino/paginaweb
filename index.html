@@ -345,7 +345,7 @@ const ICON_TRASH = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" 
 const ICON_EDIT = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 const ICON_SECDEL = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
 const ICON_PLUS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-const ICON_AED = '<div style="width:32px;height:32px;border-radius:8px;background:#1D8A3E;display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-6.7-4.3-9.6-8.7C.6 9.6 1.4 6 4.6 4.8 7 3.9 9.4 4.8 11 6.8l.4.5.3-.5c.9-1.2 2.2-2 3.7-2.2l-2.6 5.6h3l-4 7.4 1-4.4h-2.8l1-4.9c-.4.3-.8.7-1.1 1.1l-.4.5-.4-.5C7.9 7.5 6 6.9 4.6 7.6 2.8 8.4 2.3 10.6 3.6 12.5 5.8 15.7 10 19 12 20.3c2-1.3 6.2-4.6 8.4-7.8.5-.7.8-1.4.9-2.1h-2l1-2.1c.1.5.1 1 0 1.6-.2 1.1-.7 2.2-1.5 3.3C15.7 16.7 12 21 12 21z"/></svg></div>';
+const ICON_AED = '<div style="width:32px;height:32px;border-radius:6px;background:#3E8E5C;display:flex;align-items:center;justify-content:center;overflow:hidden;"><svg width="30" height="30" viewBox="0 0 100 100"><g transform="translate(-2,26) scale(0.72)"><path d="M50,90 C20,65 5,45 5,28 C5,10 20,0 35,0 C45,0 50,8 50,8 C50,8 55,0 65,0 C80,0 95,10 95,28 C95,45 80,65 50,90 Z" fill="#fff"/><path d="M52,10 L30,52 L48,52 L38,85 L70,42 L50,42 Z" fill="#3E8E5C"/></g><g fill="#fff"><rect x="70" y="2" width="13" height="32" rx="1"/><rect x="60" y="12" width="33" height="13" rx="1"/></g></svg></div>';
 const ICON_144 = '<div style="width:32px;height:32px;border-radius:8px;background:#C8102E;display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;letter-spacing:-0.5px;">144</span></div>';
 
 const STORAGE_KEY = 'panel-data-v2';
@@ -362,7 +362,7 @@ function logoFor(url){ try{ return 'https://www.google.com/s2/favicons?sz=128&do
 function seedData(){
   return { categories: [
     { id: uid(), name: 'Interventi & Soccorso', links: [
-      { id: uid(), name: 'Momentum DAE', url: 'https://tessin.momentum.surevive.ch/interventions/index', iconHtml: ICON_AED },
+      { id: uid(), name: 'MOMENTUM DAE', url: 'https://tessin.momentum.surevive.ch/interventions/index', iconHtml: ICON_AED },
       { id: uid(), name: 'Momentum Fctsa', url: 'https://fctsa.momentum.surevive.ch/interventions/resolverClosed#4512', iconHtml: ICON_144 },
       { id: uid(), name: 'Momentum Ars', url: 'https://ars.momentum.surevive.ch/', logoDomain: 'https://www.rega.ch/it' },
       { id: uid(), name: 'MOMEYE', url: 'https://momentum.emeye-t.ch/new' },
