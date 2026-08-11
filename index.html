@@ -30,7 +30,7 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
 *:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
 @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
 
-.wrap{ max-width:1280px; margin:0 auto; padding:14px 18px 14px; }
+.wrap{ width:96vw; margin:0 auto; padding:14px 22px 14px; }
 
 .topbar{
   display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
@@ -66,7 +66,7 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
 
 .btn-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(84px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(104px, 1fr));
   gap:7px;
 }
 
@@ -158,7 +158,7 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
 
 .quicksearch{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
   gap:8px;
   margin-bottom:14px;
 }
@@ -183,6 +183,15 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
   display:flex; padding:2px; flex-shrink:0;
 }
 .qs-box button:hover{ color:var(--amber); }
+.qs-box-translate{ grid-column:span 2; }
+.qs-lang{
+  flex-shrink:0;
+  background:var(--icon-bg); border:1px solid var(--border-hi); color:var(--text);
+  font-family:var(--sans); font-size:11px;
+  padding:4px 4px; border-radius:5px;
+  max-width:92px;
+}
+@media (max-width:700px){ .qs-box-translate{ grid-column:span 1; } }
 
 .lock-screen{
   position:fixed; inset:0; z-index:100;
@@ -277,6 +286,25 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
       <span class="qs-emoji">🔍</span>
       <input type="text" name="q" placeholder="Cerca su Google" autocomplete="off">
       <button type="submit" aria-label="Cerca su Google"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </form>
+    <form class="qs-box qs-box-translate" data-qs="translate">
+      <span class="qs-emoji">🌐</span>
+      <input type="text" name="q" placeholder="Testo da tradurre..." autocomplete="off">
+      <select name="lang" class="qs-lang" title="Lingua di destinazione">
+        <option value="it">Italiano</option>
+        <option value="en">Inglese</option>
+        <option value="de">Tedesco</option>
+        <option value="fr">Francese</option>
+        <option value="es">Spagnolo</option>
+        <option value="pt">Portoghese</option>
+        <option value="ar">Arabo</option>
+        <option value="sq">Albanese</option>
+        <option value="tr">Turco</option>
+        <option value="ru">Russo</option>
+        <option value="uk">Ucraino</option>
+        <option value="zh-CN">Cinese</option>
+      </select>
+      <button type="submit" aria-label="Traduci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </form>
   </div>
 
@@ -482,7 +510,8 @@ const QS_BUILDERS = {
   mapsearch: (q) => `https://search.ch/map/${encodeURIComponent(q)}.it.html`,
   telsearch: (q) => `https://search.ch/tel/?all=${encodeURIComponent(q)}`,
   chatgpt:   (q) => `https://chatgpt.com/?q=${encodeURIComponent(q)}`,
-  google:    (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`
+  google:    (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+  translate: (q) => `https://translate.google.com/?sl=auto&tl=it&text=${encodeURIComponent(q)}&op=translate`
 };
 
 document.querySelectorAll('.qs-box').forEach(form => {
@@ -490,6 +519,12 @@ document.querySelectorAll('.qs-box').forEach(form => {
     e.preventDefault();
     const q = form.q.value.trim();
     if(!q) return;
+    if(form.dataset.qs === 'translate'){
+      const lang = form.lang.value;
+      window.open(`https://translate.google.com/?sl=auto&tl=${lang}&text=${encodeURIComponent(q)}&op=translate`, '_blank', 'noopener,noreferrer');
+      form.q.value = '';
+      return;
+    }
     const build = QS_BUILDERS[form.dataset.qs];
     if(build){
       window.open(build(q), '_blank', 'noopener,noreferrer');
