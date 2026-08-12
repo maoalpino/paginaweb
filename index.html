@@ -155,6 +155,18 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
   background:var(--amber); border:1px solid var(--amber); color:#241705; font-weight:700;
   padding:5px 10px; border-radius:6px; cursor:pointer;
 }
+.reset-data-btn{
+  background:none; border:1px solid var(--border-hi); color:var(--text-faint);
+  font-family:var(--mono); font-size:10px; letter-spacing:0.5px; text-transform:uppercase;
+  padding:6px 10px; border-radius:6px; cursor:pointer; white-space:nowrap;
+}
+.reset-data-btn:hover{ color:var(--red); border-color:var(--red); }
+.reset-confirm{ display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; color:var(--text-muted); white-space:nowrap; }
+.reset-confirm button{
+  font-family:var(--mono); font-size:10px; padding:5px 9px; border-radius:5px; cursor:pointer; letter-spacing:0.5px;
+}
+.reset-confirm .yes{ background:var(--red); border:1px solid var(--red); color:#1a0d0d; font-weight:700; }
+.reset-confirm .no{ background:none; border:1px solid var(--border-hi); color:var(--text-muted); }
 
 .inline-form{
   grid-column:1/-1;
@@ -288,6 +300,7 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
     </div>
     <div class="clock"><b id="clockDate">--</b> · ORA <b id="clock">--:--:--</b></div>
     <div id="editLockZone"></div>
+    <div id="resetZone"></div>
   </div>
 
   <div class="search-box">
@@ -348,7 +361,7 @@ const ICON_PLUS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" s
 const ICON_AED = '<div style="width:32px;height:32px;border-radius:6px;background:#3E8E5C;display:flex;align-items:center;justify-content:center;overflow:hidden;"><svg width="30" height="30" viewBox="0 0 100 100"><g transform="translate(-2,26) scale(0.72)"><path d="M50,90 C20,65 5,45 5,28 C5,10 20,0 35,0 C45,0 50,8 50,8 C50,8 55,0 65,0 C80,0 95,10 95,28 C95,45 80,65 50,90 Z" fill="#fff"/><path d="M52,10 L30,52 L48,52 L38,85 L70,42 L50,42 Z" fill="#3E8E5C"/></g><g fill="#fff"><rect x="70" y="2" width="13" height="32" rx="1"/><rect x="60" y="12" width="33" height="13" rx="1"/></g></svg></div>';
 const ICON_144 = '<div style="width:32px;height:32px;border-radius:8px;background:#C8102E;display:flex;align-items:center;justify-content:center;"><span style="color:#fff;font-family:\'JetBrains Mono\',monospace;font-size:10px;font-weight:700;letter-spacing:-0.5px;">144</span></div>';
 
-const STORAGE_KEY = 'panel-data-v2';
+const STORAGE_KEY = 'panel-data-v3';
 const app = document.getElementById('app');
 const searchInput = document.getElementById('search');
 let state = null;
@@ -573,7 +586,33 @@ function renderEditLock(){
   } else {
     zone.innerHTML = '<button type="button" class="edit-lock-btn" data-action="ask-edit-unlock">🔒 Modifica</button>';
   }
+  renderResetZone();
 }
+
+function renderResetZone(){
+  const rz = document.getElementById('resetZone');
+  if(!rz) return;
+  if(!editUnlocked){ rz.innerHTML = ''; return; }
+  rz.innerHTML = '<button type="button" class="reset-data-btn" data-action="reset-ask" title="Ripristina i collegamenti a quelli di base del file">↺ Ripristina dati</button>';
+}
+
+document.getElementById('resetZone').addEventListener('click', async (e) => {
+  const t = e.target.closest('[data-action]');
+  if(!t) return;
+  const rz = document.getElementById('resetZone');
+  if(t.dataset.action === 'reset-ask'){
+    rz.innerHTML = '<div class="reset-confirm">Sovrascrivere i dati salvati? <button class="yes" data-action="reset-yes">Sì</button><button class="no" data-action="reset-no">No</button></div>';
+  } else if(t.dataset.action === 'reset-yes'){
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(err){}
+    state = seedData();
+    await saveData();
+    render();
+    renderResetZone();
+    requestAnimationFrame(fitToScreen);
+  } else if(t.dataset.action === 'reset-no'){
+    renderResetZone();
+  }
+});
 
 document.getElementById('editLockZone').addEventListener('click', (e) => {
   const t = e.target.closest('[data-action]');
