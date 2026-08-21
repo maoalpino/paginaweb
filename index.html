@@ -224,6 +224,8 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
 }
 .qs-box button:hover{ color:var(--amber); }
 .qs-box-translate{ grid-column:span 2; }
+.qs-box-route{ grid-column:span 2; }
+.qs-box-route input{ min-width:70px; }
 .qs-lang{
   flex-shrink:0;
   background:var(--icon-bg); border:1px solid var(--border-hi); color:var(--text);
@@ -231,7 +233,7 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
   padding:4px 4px; border-radius:5px;
   max-width:92px;
 }
-@media (max-width:700px){ .qs-box-translate{ grid-column:span 1; } }
+@media (max-width:700px){ .qs-box-translate{ grid-column:span 1; } .qs-box-route{ grid-column:span 1; } }
 
 .lock-screen{
   position:fixed; inset:0; z-index:100;
@@ -347,6 +349,12 @@ html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font-fa
         <option value="zh-CN">Cinese</option>
       </select>
       <button type="submit" aria-label="Traduci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+    </form>
+    <form class="qs-box qs-box-route" data-qs="route">
+      <span class="qs-emoji">🚗</span>
+      <input type="text" name="from" placeholder="DA: indirizzo o luogo" autocomplete="off">
+      <input type="text" name="to" placeholder="A: indirizzo o luogo" autocomplete="off">
+      <button type="submit" aria-label="Calcola percorso"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
     </form>
   </div>
 
@@ -559,6 +567,15 @@ const QS_BUILDERS = {
 document.querySelectorAll('.qs-box').forEach(form => {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    if(form.dataset.qs === 'route'){
+      const from = form.from.value.trim();
+      const to = form.to.value.trim();
+      if(!from || !to) return;
+      window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}`, '_blank', 'noopener,noreferrer');
+      form.from.value = '';
+      form.to.value = '';
+      return;
+    }
     const q = form.q.value.trim();
     if(!q) return;
     if(form.dataset.qs === 'translate'){
